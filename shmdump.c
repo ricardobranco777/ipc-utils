@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	}
 
 	id = atoi(argv[1]);
-	file = argv[2];	
+	file = argv[2];
 
 	if (shmctl(id, IPC_STAT, &info) < 0) {
 		perror(argv[1]);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 		perror("shmat()");
 		exit(1);
 	}
-	
+
 	fwrite(addr, info.shm_segsz, 1, out);
 
 	shmdt(addr);

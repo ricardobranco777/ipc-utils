@@ -2,7 +2,7 @@
  * (c) 2016 by Ricardo Branco
  * MIT License
  *
- * v1.0 
+ * v1.0
  *
  * This program is the chmod equivalent to ipcmk(1) and ipcrm(1).
  *
