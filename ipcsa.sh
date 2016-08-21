@@ -4,7 +4,7 @@ cat /proc/sysvipc/shm | \
 while read key shmid perms size cpid lpid nattch uid gid cuid cgid atime dtime ctime rss swap ; do
 	# Print header
 	if [[ $key == "key" ]] ; then
-		printf "%-8s %-8s perms\tcpid\tlpid\tc_cmdline l_cmdline\n" shmid size
+		printf "%-8s %-8s %-10s %-6s cpid\tc_cmdline\n" "owner" "shmid" "size" "perms"
 		continue
 	fi
 
@@ -18,8 +18,9 @@ while read key shmid perms size cpid lpid nattch uid gid cuid cgid atime dtime c
 	#l_exe=$(readlink -f /proc/$lpid/exe)
 
 	[ ! -d /proc/$cpid ] && cpid="!$cpid"
-	[ ! -d /proc/$lpid ] && lpid="!$lpid"
 
-	printf "%-8d %-8d ${perms}\t${cpid}\t${lpid}\t$c_cmdline $l_cmdline\n" $shmid $size
+	owner=$(id -un)
+
+	printf "%-8s %-8d %-10d %-6s ${cpid}\t$c_cmdline $l_cmdline\n" "$owner" "$shmid" "$size" "$perms"
 done
 
