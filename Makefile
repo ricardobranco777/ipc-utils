@@ -3,17 +3,21 @@ prefix	= /usr/local
 bindir	= ${prefix}/bin
 
 BIN	= ipcmod shmdump
+OBJ	= lib.o
 
 CC	= gcc
 CFLAGS	= -Wall -O2
 
 all:	$(BIN)
 
-ipcmod:	ipcmod.c
-	$(CC) -o $@ $(CFLAGS) $<
+ipcmod:	ipcmod.c $(OBJ)
+	$(CC) -o $@ $(CFLAGS) $(OBJ) $<
 
-shmdump: shmdump.c
-	$(CC) -o $@ $(CFLAGS) $<
+shmdump: shmdump.c $(OBJ)
+	$(CC) -o $@ $(CFLAGS) $(OBJ) $<
+
+lib.o:	lib.c
+	$(CC) -o $@ -c $(CFLAGS) $<
 
 install: $(BIN)
 	strip $(BIN)
