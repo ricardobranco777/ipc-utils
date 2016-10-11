@@ -2,7 +2,7 @@
  * (c) 2016 by Ricardo Branco
  * MIT License
  *
- * v1.0.1
+ * v1.1
  *
  * This program is the chmod equivalent to ipcmk(1) and ipcrm(1).
  *
@@ -14,8 +14,11 @@
  *   + The 0x2000 bit sets the IPC_LOCK flag to lock the shared memory segment to RAM. This flag is Linux-only.
  *     The RLIMIT_MEMLOCK value (ulimit -l) from getrlimit(2) applies for non-privileged users.
  *   + See the msgctl(2), semctl(2) & shmctl(2) for details.
+ *   + It supports IPC namespaces. (Linux only). The argument to the -i option is a PID.
+ *     See lsns(1) from latest util-linux to list namespaces.
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,12 +29,19 @@
 #include <errno.h>
 #include <libgen.h>
 #include <unistd.h>
+#ifdef __linux__
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <sched.h>
+#endif
 
 static char *progname;
 
 static void exit_usage(int status)
 {
-	fprintf(stderr, "Usage: %s [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
+	fprintf(stderr, "Usage: %s [-i PID] [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
 	exit(status);
 }
 
@@ -166,13 +176,32 @@ int main(int argc, char *argv[])
 	unsigned short mode;
 	int mask = 0777;
 	int opt;
+#ifdef CLONE_NEWIPC
+	char path[PATH_MAX];
+	pid_t fd = -1;
+#endif
 
 	progname = basename(strdup(argv[0]));
 
-	while ((opt = getopt(argc, argv, ":hmqs")) != -1) {
+	while ((opt = getopt(argc, argv, ":hi:mqs")) != -1) {
 		switch (opt) {
 		case 'h':
 			exit_usage(0);
+#ifdef CLONE_NEWIPC
+		case 'i':
+			if (fd != -1)
+				exit_usage(1);
+			{
+				pid_t pid = (pid_t) xstrtoul(optarg, 10);
+				snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) pid);
+			}
+			fd = open(path, O_RDONLY);
+			if (fd < 0) {
+				perror(path);
+				exit(1);
+			}
+			break;
+#endif
 		case 'm':
 			if (ipcmod != NULL)
 				exit_usage(1);
@@ -206,6 +235,13 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Invalid mode: %o\n", mode);
 		exit(1);
 	}
+
+#ifdef CLONE_NEWIPC
+	if (fd != -1 && setns(fd, CLONE_NEWIPC) < 0) {
+		perror("setns()");
+		exit(1);
+	}
+#endif
 
 	exit(ipcmod(argv, mode & mask) ? 1: 0);
 }
