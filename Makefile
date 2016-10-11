@@ -25,4 +25,4 @@ install: $(BIN)
 	install -m 755 $(BIN) $(bindir)
 
 clean:
-	rm -f $(BIN)
+	rm -f $(BIN) $(OBJ)
