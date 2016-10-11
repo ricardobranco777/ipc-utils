@@ -2,7 +2,7 @@
  * (c) 2016 by Ricardo Branco
  * MIT License
  *
- * v1.0
+ * v1.0.1
  *
  * This program is the chmod equivalent to ipcmk(1) and ipcrm(1).
  *
@@ -71,7 +71,7 @@ static int msgmod(char *argv[], unsigned short mode)
 			continue;
 		}
 
-		info.msg_perm.mode |= mode & 0777;
+		info.msg_perm.mode = mode;
 
 		if (msgctl(id, IPC_SET, &info) < 0) {
 			fprintf(stderr, "msgctl(IPC_SET): %d: %s\n", id, strerror(errno));
@@ -96,7 +96,7 @@ static int semmod(char *argv[], unsigned short mode)
 			continue;
 		}
 
-		info.sem_perm.mode |= mode & 0777;
+		info.sem_perm.mode = mode;
 
 		if (semctl(id, 0, IPC_SET, &info) < 0) {
 			fprintf(stderr, "semctl(IPC_SET): %d: %s\n", id, strerror(errno));
@@ -123,7 +123,7 @@ static int shmmod(char *argv[], unsigned short mode)
 			continue;
 		}
 
-		info.shm_perm.mode |= mode & 0777;
+		info.shm_perm.mode = mode;
 
 		if (shmctl(id, IPC_SET, &info) < 0) {
 			fprintf(stderr, "shmctl(IPC_SET): %d: %s\n", id, strerror(errno));
