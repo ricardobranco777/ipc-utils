@@ -20,3 +20,5 @@ install: $(BIN)
 	mkdir -p -m $(bindir)
 	install -m 755 $(BIN) $(bindir)
 
+clean:
+	rm -f $(BIN)
