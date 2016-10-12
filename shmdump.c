@@ -71,8 +71,7 @@ int main(int argc, char *argv[])
 			if (fd != -1)
 				exit_usage(1);
 			(void) snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) xstrtoul(optarg, 10));
-			fd = open(path, O_RDONLY);
-			if (fd < 0)
+			if ((fd = open(path, O_RDONLY)) < 0)
 				perr(path);
 			break;
 #endif
@@ -98,12 +97,10 @@ int main(int argc, char *argv[])
 	if (shmctl(id, IPC_STAT, &info) < 0)
 		perr(argv[0]);
 
-	out = fopen(file, "w+");
-	if (out == NULL)
+	if ((out = fopen(file, "w+")) == NULL)
 		perr(file)
 
-	addr = shmat(id, NULL, 0);
-	if (addr == (void *) -1)
+	if ((addr = shmat(id, NULL, 0)) == (void *) -1)
 		perr("shmat()");
 
 	(void) fwrite(addr, info.shm_segsz, 1, out);

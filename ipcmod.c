@@ -140,9 +140,8 @@ static int shmmod(char *argv[], unsigned short mode)
 			cmd = info.shm_perm.mode & SHM_LOCKED ? SHM_UNLOCK : 0;
 
 		if (cmd) {
-			addr = shmat(id, NULL, 0);
-			if (addr == (void *) -1)
-				/* shmat() may fail if we are the last process attached and SHM_RMID was set */
+			/* shmat() may fail if we are the last process attached and SHM_RMID was set */
+			if ((addr = shmat(id, NULL, 0)) == (void *) -1)
 				continue;
 			if (shmctl(id, cmd, NULL) < 0) {
 				warn("SHM_LOCK: %d", id);
@@ -182,8 +181,7 @@ int main(int argc, char *argv[])
 			if (fd != -1)
 				exit_usage(1);
 			(void) snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) xstrtoul(optarg, 10));
-			fd = open(path, O_RDONLY);
-			if (fd < 0)
+			if ((fd = open(path, O_RDONLY)) < 0)
 				perr(path);
 			break;
 #endif
@@ -204,7 +202,7 @@ int main(int argc, char *argv[])
 			ipcmod = &msgmod;
 			break;
 		default:
-			fprintf(stderr, "ERROR: invalid option: -%c\n", optopt);
+			warn("Invalid option: -%c", optopt);
 			exit_usage(1);
 		}
 	}
@@ -215,11 +213,8 @@ int main(int argc, char *argv[])
 	if (argc < 2)
 		exit_usage(1);
 
-	mode = (unsigned short) xstrtoul(*argv, 8);
-	if (mode > mask) {
-		fprintf(stderr, "Invalid mode: %o\n", mode);
-		exit(1);
-	}
+	if ((mode = (unsigned short) xstrtoul(*argv, 8)) > mask)
+		errx(1, "Invalid mode: %o", mode);
 
 #ifdef CLONE_NEWIPC
 	if (fd != -1 && setns(fd, CLONE_NEWIPC) < 0)
