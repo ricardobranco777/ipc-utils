@@ -32,9 +32,9 @@ static char *progname;
 static void exit_usage(int status)
 {
 #ifdef CLONE_NEWIPC
-	printf("Usage: %s [-i PID] SHMID DUMPFILE\n", progname);
+	fprintf(stderr, "Usage: %s [-i PID] SHMID DUMPFILE\n", progname);
 #else
-	printf("Usage: %s SHMID DUMPFILE\n", progname);
+	fprintf(stderr, "Usage: %s SHMID DUMPFILE\n", progname);
 #endif
 	exit(status);
 }
