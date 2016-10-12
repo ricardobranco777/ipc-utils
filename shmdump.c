@@ -25,6 +25,9 @@
 #include <limits.h>
 #include <sched.h>
 #endif
+#include <err.h>
+
+#define perr(str) err(1, "%s", str);
 
 unsigned long xstrtoul(const char *str, int base);
 
@@ -69,10 +72,8 @@ int main(int argc, char *argv[])
 				exit_usage(1);
 			(void) snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) xstrtoul(optarg, 10));
 			fd = open(path, O_RDONLY);
-			if (fd < 0) {
-				perror(path);
-				exit(1);
-			}
+			if (fd < 0)
+				perr(path);
 			break;
 #endif
 		default:
@@ -90,28 +91,20 @@ int main(int argc, char *argv[])
 	file = argv[1];
 
 #ifdef CLONE_NEWIPC
-	if (fd != -1 && setns(fd, CLONE_NEWIPC) < 0) {
-		perror("setns()");
-		exit(1);
-	}
+	if (fd != -1 && setns(fd, CLONE_NEWIPC) < 0)
+		perr("setns()");
 #endif
 
-	if (shmctl(id, IPC_STAT, &info) < 0) {
-		perror(argv[0]);
-		exit(1);
-	}
+	if (shmctl(id, IPC_STAT, &info) < 0)
+		perr(argv[0]);
 
 	out = fopen(file, "w+");
-	if (out == NULL) {
-		perror(file);
-		exit(1);
-	}
+	if (out == NULL)
+		perr(file)
 
 	addr = shmat(id, NULL, 0);
-	if (addr == (void *) -1) {
-		perror("shmat()");
-		exit(1);
-	}
+	if (addr == (void *) -1)
+		perr("shmat()");
 
 	(void) fwrite(addr, info.shm_segsz, 1, out);
 

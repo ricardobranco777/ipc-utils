@@ -26,7 +26,6 @@
 #include <sys/msg.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
-#include <errno.h>
 #include <libgen.h>
 #include <unistd.h>
 #ifdef __linux__
@@ -36,6 +35,9 @@
 #include <limits.h>
 #include <sched.h>
 #endif
+#include <err.h>
+
+#define perr(str) err(1, "%s", str)
 
 unsigned long xstrtoul(const char *str, int base);
 
@@ -60,7 +62,7 @@ static int msgmod(char *argv[], unsigned short mode)
 	while (*++argv != NULL) {
 		id = (int) xstrtoul(*argv, 10);
 		if (msgctl(id, IPC_STAT, &info) < 0) {
-			fprintf(stderr, "%s: %d\n", strerror(errno), id);
+			warn("IPC_STAT: %d", id);
 			errors++;
 			continue;
 		}
@@ -68,7 +70,7 @@ static int msgmod(char *argv[], unsigned short mode)
 		info.msg_perm.mode = mode;
 
 		if (msgctl(id, IPC_SET, &info) < 0) {
-			fprintf(stderr, "msgctl(IPC_SET): %d: %s\n", id, strerror(errno));
+			warn("IPC_SET: %d", id);
 			errors++;
 		}
 	}
@@ -85,7 +87,7 @@ static int semmod(char *argv[], unsigned short mode)
 	while (*++argv != NULL) {
 		id = (int) xstrtoul(*argv, 10);
 		if (semctl(id, 0, IPC_STAT, &info) < 0) {
-			fprintf(stderr, "%s: %d\n", strerror(errno), id);
+			warn("IPC_STAT: %d", id);
 			errors++;
 			continue;
 		}
@@ -93,7 +95,7 @@ static int semmod(char *argv[], unsigned short mode)
 		info.sem_perm.mode = mode;
 
 		if (semctl(id, 0, IPC_SET, &info) < 0) {
-			fprintf(stderr, "semctl(IPC_SET): %d: %s\n", id, strerror(errno));
+			warn("IPC_SET: %d", id);
 			errors++;
 		}
 	}
@@ -112,7 +114,7 @@ static int shmmod(char *argv[], unsigned short mode)
 	while (*++argv != NULL) {
 		id = (int) xstrtoul(*argv, 10);
 		if (shmctl(id, IPC_STAT, &info) < 0) {
-			fprintf(stderr, "%s: %d\n", strerror(errno), id);
+			warn("IPC_STAT: %d", id);
 			errors++;
 			continue;
 		}
@@ -120,13 +122,13 @@ static int shmmod(char *argv[], unsigned short mode)
 		info.shm_perm.mode = mode;
 
 		if (shmctl(id, IPC_SET, &info) < 0) {
-			fprintf(stderr, "shmctl(IPC_SET): %d: %s\n", id, strerror(errno));
+			warn("IPC_SET: %d", id);
 			errors++;
 		}
 
 		if (mode & SHM_DEST) {
 			if (shmctl(id, IPC_RMID, NULL) < 0) {
-				fprintf(stderr, "shmctl(IPC_RMID): %d: %s\n", id, strerror(errno));
+				warn("IPC_RMID: %d", id);
 				errors++;
 			}
 		}
@@ -143,7 +145,7 @@ static int shmmod(char *argv[], unsigned short mode)
 				/* shmat() may fail if we are the last process attached and SHM_RMID was set */
 				continue;
 			if (shmctl(id, cmd, NULL) < 0) {
-				fprintf(stderr, "SHM_LOCK: %d: %s\n", id, strerror(errno));
+				warn("SHM_LOCK: %d", id);
 				errors++;
 			}
 			(void) shmdt(addr);
@@ -181,10 +183,8 @@ int main(int argc, char *argv[])
 				exit_usage(1);
 			(void) snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) xstrtoul(optarg, 10));
 			fd = open(path, O_RDONLY);
-			if (fd < 0) {
-				perror(path);
-				exit(1);
-			}
+			if (fd < 0)
+				perr(path);
 			break;
 #endif
 		case 'm':
@@ -222,10 +222,8 @@ int main(int argc, char *argv[])
 	}
 
 #ifdef CLONE_NEWIPC
-	if (fd != -1 && setns(fd, CLONE_NEWIPC) < 0) {
-		perror("setns()");
-		exit(1);
-	}
+	if (fd != -1 && setns(fd, CLONE_NEWIPC) < 0)
+		perr("setns()");
 #endif
 
 	exit(ipcmod(argv, mode & mask) ? 1: 0);
