@@ -31,7 +31,11 @@ static char *progname;
 
 static void exit_usage(int status)
 {
+#ifdef CLONE_NEWIPC
 	printf("Usage: %s [-i PID] SHMID DUMPFILE\n", progname);
+#else
+	printf("Usage: %s SHMID DUMPFILE\n", progname);
+#endif
 	exit(status);
 }
 
@@ -48,24 +52,25 @@ int main(int argc, char *argv[])
 	pid_t fd = -1;
 #endif
 
+#ifdef CLONE_NEWIPC
 	while ((opt = getopt(argc, argv, ":hi:")) != -1) {
+#else
+	while ((opt = getopt(argc, argv, ":h")) != -1) {
+#endif
 		switch (opt) {
 		case 'h':
 			exit_usage(0);
 #ifdef CLONE_NEWIPC
 		case 'i':
-		       if (fd != -1)
-			       exit_usage(1);
-		       {
-			       pid_t pid = (pid_t) xstrtoul(optarg, 10);
-			       snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) pid);
-		       }
-		       fd = open(path, O_RDONLY);
-		       if (fd < 0) {
-			       perror(path);
-			       exit(1);
-		       }
-		       break;
+			if (fd != -1)
+				exit_usage(1);
+			(void) snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) xstrtoul(optarg, 10));
+			fd = open(path, O_RDONLY);
+			if (fd < 0) {
+				perror(path);
+				exit(1);
+			}
+			break;
 #endif
 		default:
 			exit_usage(1);

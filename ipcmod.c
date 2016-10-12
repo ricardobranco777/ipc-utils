@@ -43,7 +43,11 @@ static char *progname;
 
 static void exit_usage(int status)
 {
+#ifdef CLONE_NEWIPC
 	fprintf(stderr, "Usage: %s [-i PID] [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
+#else
+	fprintf(stderr, "Usage: %s [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
+#endif
 	exit(status);
 }
 
@@ -163,7 +167,11 @@ int main(int argc, char *argv[])
 
 	progname = basename(strdup(argv[0]));
 
+#ifdef CLONE_NEWIPC
 	while ((opt = getopt(argc, argv, ":hi:mqs")) != -1) {
+#else
+	while ((opt = getopt(argc, argv, ":hmqs")) != -1) {
+#endif
 		switch (opt) {
 		case 'h':
 			exit_usage(0);
@@ -171,10 +179,7 @@ int main(int argc, char *argv[])
 		case 'i':
 			if (fd != -1)
 				exit_usage(1);
-			{
-				pid_t pid = (pid_t) xstrtoul(optarg, 10);
-				snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) pid);
-			}
+			(void) snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) xstrtoul(optarg, 10));
 			fd = open(path, O_RDONLY);
 			if (fd < 0) {
 				perror(path);
