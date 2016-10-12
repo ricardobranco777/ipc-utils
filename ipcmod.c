@@ -45,10 +45,12 @@ static char *progname;
 
 static void exit_usage(int status)
 {
+	FILE *fp = status ? stderr : stdout;
+
 #ifdef CLONE_NEWIPC
-	fprintf(stderr, "Usage: %s [-i PID] [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
+	fprintf(fp, "Usage: %s [-i PID] [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
 #else
-	fprintf(stderr, "Usage: %s [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
+	fprintf(fp, "Usage: %s [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
 #endif
 	exit(status);
 }
