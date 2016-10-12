@@ -52,6 +52,8 @@ int main(int argc, char *argv[])
 	pid_t fd = -1;
 #endif
 
+	progname = basename(strdup(argv[0]));
+
 #ifdef CLONE_NEWIPC
 	while ((opt = getopt(argc, argv, ":hi:")) != -1) {
 #else
