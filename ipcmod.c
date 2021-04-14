@@ -48,9 +48,9 @@ static void exit_usage(int status)
 	FILE *fp = status ? stderr : stdout;
 
 #ifdef CLONE_NEWIPC
-	fprintf(fp, "Usage: %s [-i PID] [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
+	fprintf(fp, "Usage: %s [-i PID] -m|-q|-s MODE SHMID|MSQID|SEMID...\n", progname);
 #else
-	fprintf(fp, "Usage: %s [-m|-q|-s] MODE SHMID|MSQID|SEMID...\n", progname);
+	fprintf(fp, "Usage: %s -m|-q|-s MODE SHMID|MSQID|SEMID...\n", progname);
 #endif
 	exit(status);
 }
@@ -208,6 +208,9 @@ int main(int argc, char *argv[])
 			exit_usage(1);
 		}
 	}
+
+	if (ipcmod == NULL)
+		exit_usage(1);
 
 	argc -= optind;
 	argv += optind;
