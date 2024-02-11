@@ -1,22 +1,3 @@
-/*
- * (c) 2016 by Ricardo Branco
- * MIT License
- *
- * v1.1
- *
- * This programs dumps the memory specified by the SysV IPC Shared Memory ID to the specified file.
- *
- * Note:
- * It supports IPC namespaces. (Linux only). The argument to the -i option is a PID.
- * See lsns(1) from latest util-linux to list namespaces.
- */
-
-#define _GNU_SOURCE
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <libgen.h>
 #include <sys/types.h>
 #include <sys/shm.h>
 #ifdef __linux__
@@ -25,15 +6,21 @@
 #include <limits.h>
 #include <sched.h>
 #endif
+
 #include <err.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-#define perr(str) err(1, "%s", str);
-
-unsigned long xstrtoul(const char *str, int base);
+/* Get a sane version of basename on Linux */
+#define _GNU_SOURCE
+#include <libgen.h>
 
 static char *progname;
 
-static void exit_usage(int status)
+static void
+exit_usage(int status)
 {
 	FILE *fp = status ? stderr : stdout;
 
@@ -45,7 +32,8 @@ static void exit_usage(int status)
 	exit(status);
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	struct shmid_ds info;
 	void *addr;
@@ -68,13 +56,14 @@ int main(int argc, char *argv[])
 		switch (opt) {
 		case 'h':
 			exit_usage(0);
+			break;
 #ifdef CLONE_NEWIPC
 		case 'i':
 			if (fd != -1)
 				exit_usage(1);
-			(void) snprintf(path, PATH_MAX, "/proc/%ld/ns/ipc", (long) xstrtoul(optarg, 10));
+			(void) snprintf(path, PATH_MAX, "/proc/%d/ns/ipc", atoi(optarg));
 			if ((fd = open(path, O_RDONLY)) < 0)
-				perr(path);
+				err(1, "%s", path);
 			break;
 #endif
 		default:
@@ -93,17 +82,17 @@ int main(int argc, char *argv[])
 
 #ifdef CLONE_NEWIPC
 	if (fd != -1 && setns(fd, CLONE_NEWIPC) < 0)
-		perr("setns()");
+		err(1, "%s", "setns()");
 #endif
 
 	if (shmctl(id, IPC_STAT, &info) < 0)
-		perr(argv[0]);
+		err(1, "%s", argv[0]);
 
 	if ((out = fopen(file, "w+")) == NULL)
-		perr(file)
+		err(1, "%s", file);
 
 	if ((addr = shmat(id, NULL, 0)) == (void *) -1)
-		perr("shmat()");
+		err(1, "%s", "shmat()");
 
 	(void) fwrite(addr, info.shm_segsz, 1, out);
 

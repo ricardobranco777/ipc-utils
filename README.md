@@ -1,7 +1,7 @@
 # ipc-utils
 SysV IPC utilities that complement ipcmk and ipcrm
 
-# ipcmod
+## ipcmod
 This program is the chmod(1) equivalent to ipcmk(1), ipcs(1) & ipcrm(1)
 
 Notes:
@@ -14,10 +14,15 @@ Notes:
 - See the msgctl(2), semctl(2) & shmctl(2) for details.
 - Supports IPC namespaces with the -i option.
 
-# nsenter.sh
+## shmdump
+Dumps the memory specified by the SysV IPC Shared Memory ID to the specified file.
+
+## nsenter.sh
 Run a command on all available namespaces of a specific type (default: IPC)
 
 Example: nsenter.sh ipcs -a
 
-# shmdump
-Dumps the memory specified by the SysV IPC Shared Memory ID to the specified file.
+## NOTES:
+
+- Tested on \*BSD
+- Use `gmake` on Solaris

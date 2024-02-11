@@ -1,3 +1,4 @@
-ipcmod
-lib.o
-shmdump
+ipcmod/ipcmod
+shmdump/shmdump
+**/*.o
+**/*.depend
