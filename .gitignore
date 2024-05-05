@@ -2,3 +2,4 @@ ipcmod/ipcmod
 shmdump/shmdump
 **/*.o
 **/*.depend
+**/.gdbinit
