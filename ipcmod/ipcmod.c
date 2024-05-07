@@ -17,7 +17,9 @@
 #include <unistd.h>
 
 /* Get a sane version of basename on Linux */
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <libgen.h>
 
 static char *progname;
