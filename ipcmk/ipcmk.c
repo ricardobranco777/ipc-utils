@@ -74,7 +74,7 @@ main(int argc, char *argv[]) {
 			break;
 		case 'p':
 			errno = 0;
-			strtoul(optarg, &endp, 8);
+			perms = strtoul(optarg, &endp, 8);
 			if (errno || *endp != '\0')
 				errx(1, "Invalid mode: %s", optarg);
 			break;
