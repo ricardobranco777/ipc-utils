@@ -1,6 +1,8 @@
 # ipc-utils
 SysV IPC utilities that complement ipcmk and ipcrm
 
+Moved to https://github.com/ricardobranco777/unixtools
+
 ## ipcmod
 This program is the chmod(1) equivalent to ipcmk(1), ipcs(1) & ipcrm(1)
 
